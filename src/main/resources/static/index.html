@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <style>
+        body{
+            font-family:Arial, sans-serif;
+            max-width:600px;
+            margin:50px auto;
+            padding:20px;
+            background-color:#f5f5f5;
+        }
+        .container{
+            background:white;
+            padding:30px;
+            border-radius:16px;
+            box-shadow:0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1{color:#333;}
+        input{
+            width:100%;
+            padding:12px;
+            margin:10px 0;
+            border:1px solid #ddd;
+            border-radius:8px;
+            font-size:16px;
+            box-sizing:border-box;
+        }
+        button{
+            background:#007bff;
+            color:white;
+            padding:12px 24px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:16px;
+            width:100%;
+            margin-top:10px;
+        }
+        button:hover {background:#0056b3;}
+        .result{
+            margin-top:20px;
+            padding:10px;
+            background:#e9ecef;
+            border-radius:5px;
+            display:none;
+        }
+        .success{
+            color:#28a745;
+            font-weight:bold;
+        }
+        .error{
+            color:red;
+            margin-top:10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 URL Shortener</h1>
+        <p>Enter a long URL to create a short link</p>
+
+        <input type="url" id="urlInput" placeholder="https://example.com/very/long/url">
+        <button onclick="shortenUrl()">Shorten URL</button>
+
+        <div id="result" class="result"></div>
+    </div>
+
+    <script>
+        async function shortenUrl(){
+            const urlInput=document.getElementById('urlInput');
+            const url=urlInput.value.trim();
+
+            if(!url){
+                showError('Please enter a URL');
+                return;
+            }
+
+            try{
+                const response=await fetch('/shorten',{
+                    method:'POST',
+                    headers:{'Content-Type':'text/plain'},
+                    body:url
+                });
+
+                if(response.ok){
+                    const data=await response.json();
+                    showResult(data.shortUrl);
+                }
+                else{
+                    const error=await response.json();
+                    showError(error.error||'Failed to shorten URL');
+                }
+            }catch(error){
+                showError('Network error. Is the server running?');
+            }
+        }
+
+        function showResult(shortUrl){
+            const resultDiv=document.getElementById('result');
+            resultDiv.innerHTML=`
+                <div class="success">✅ Short URL created!</div>
+                <p>Short URL: <a href="${shortUrl}" target="_blank">${shortUrl}</a></p>
+                <button onClick="copyToClipboard('${shortUrl}')">Copy to Clipboard</button>
+            `;
+            resultDiv.style.display='block';
+        }
+
+        function showError(message){
+            const resultDiv=document.getElementById('result');
+            resultDiv.innerHTML=`<div class="error">❌ ${message}</div>`;
+            resultDiv.style.display='block';
+            setTimeout(()=>{
+                resultDiv.style.display='none';
+            },3000);
+        }
+
+        function copyToClipboard(text){
+            navigator.clipboard.writeText(text);
+            alert('Copied to clipboard!');
+        }
+    </script>
+</body>
+</html>
