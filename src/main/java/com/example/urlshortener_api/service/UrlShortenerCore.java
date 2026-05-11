@@ -2,7 +2,7 @@ package com.example.urlshortener_api.service;
 
 import com.example.urlshortener_api.model.UrlMapping;
 import com.example.urlshortener_api.repository.UrlMappingRepository;
-import jakarta.annotation.PostConstruct;   // ✅ Add this import
+import jakarta.annotation.PostConstruct;  
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.Optional;
@@ -35,6 +35,13 @@ public class UrlShortenerCore{
     }
     
     public String shortenUrl(String originalUrl){
+
+        Optional<UrlMapping> existing=repository.findByOriginalUrl(originalUrl);
+        if(existing.isPresent()){
+            logger.info("Duplicate URL: "+originalUrl+" -> returning existing code: "+existing.get().getShortCode());
+            return existing.get().getShortCode();
+        }
+        
         String shortCode=encode(counter);
         
         UrlMapping mapping=new UrlMapping(shortCode, originalUrl);
